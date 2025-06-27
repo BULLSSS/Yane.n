@@ -1,0 +1,40 @@
+name: CI/CD Pipeline with Security
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest # Utilisez l'environnement Linux de GitHub Actions
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4 # Action pour cloner votre dépôt
+
+    - name: Log in to Docker Hub (Optional, if pushing to Docker Hub)
+      uses: docker/login-action@v3
+      with:
+        username: ${{ secrets.DOCKER_USERNAME }} # Créez ce secret dans GitHub
+        password: ${{ secrets.DOCKER_PASSWORD }} # Créez ce secret dans GitHub
+
+    - name: Build Docker image
+      run: |
+        docker build -t my-flask-app:latest .
+        # Optionnel: docker push your_dockerhub_username/my-flask-app:latest
+
+    - name: Lint Dockerfile (Optional - using hadolint as an example)
+      uses: hadolint/hadolint-action@v3.1.0 # Action pour lint le Dockerfile
+      with:
+        dockerfile: Dockerfile
+        ignore: DL3008,DL3018 # Exemple: ignorer des règles spécifiques si besoin
+
+    - name: Lint YAML files (using yamllint)
+      uses: adrienverge/yamllint-action@v2.0.0 # Action pour lint les fichiers YAML
+      with:
+        yamllint_file_or_dir: . # Scanne le répertoire courant
+        strict: true
+        # Ajoutez .yamllint.yml pour configurer les règles spécifiques si besoin
